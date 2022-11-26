@@ -20,23 +20,26 @@ arguments:
 	addCmdLabelsFlagName = "label"
 )
 
-var labels []string
+const labelSeparator = ":"
+const defaultLabelTimestampName = "timestamp"
 
-var addCmd = &cobra.Command{
-	Use:   addCmdName,
-	Short: addCmdShortDescriber,
-	Long:  addCmdLongDescriber,
-	Args:  cobra.ExactArgs(4),
-	Run:   run,
+func AddCommand() *cobra.Command {
+	var addCmd = &cobra.Command{
+		Use:   addCmdName,
+		Short: addCmdShortDescriber,
+		Long:  addCmdLongDescriber,
+		Args:  cobra.ExactArgs(4),
+		Run:   run,
+	}
+
+	initFlag(addCmd)
+
+	return addCmd
 }
 
-func init() {
-	initFlag()
-}
-
-func initFlag() {
-	var defaultLabelsFlagValues = []string{"timestamp:" + tools.NowTimestampString()}
-	addCmd.Flags().StringArrayVar(&labels, addCmdLabelsFlagName, defaultLabelsFlagValues, "add label for code review comments")
+func initFlag(command *cobra.Command) {
+	var defaultLabelsFlagValues = []string{defaultLabelTimestampName + labelSeparator + tools.NowTimestampString()}
+	command.Flags().StringArray(addCmdLabelsFlagName, defaultLabelsFlagValues, "add label for code review comments")
 }
 
 func run(cmd *cobra.Command, args []string) {
@@ -47,8 +50,12 @@ func run(cmd *cobra.Command, args []string) {
 	tools.CheckIfError(err)
 
 	reviewComment := args[3]
+	labelStrings, err := cmd.Flags().GetStringArray(addCmdLabelsFlagName)
+	tools.CheckIfError(err)
 
-	internal.AddCodeReviewComment(parseRepoPath(cmd), commitHash, filePath, lineNumbers, reviewComment, parseLabels(labels))
+	internal.AddCodeReviewComment(
+		parseRepoPath(cmd), commitHash, filePath, lineNumbers, reviewComment, parseLabels(labelStrings),
+	)
 }
 
 func parseLabels(labels []string) map[string]string {
@@ -59,7 +66,7 @@ func parseLabels(labels []string) map[string]string {
 	result := make(map[string]string, len(labels))
 
 	for _, label := range labels {
-		labelArray := strings.Split(label, ":")
+		labelArray := strings.Split(label, labelSeparator)
 
 		if len(labelArray) != 2 {
 			tools.Error("label is invalid: " + label)
