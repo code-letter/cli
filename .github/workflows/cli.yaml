@@ -3,9 +3,11 @@ on:
   push:
     paths:
       - '**.go'
+      - '.github/workflows/**.yaml'
   pull_request:
     paths:
       - '**.go'
+      - '.github/workflows/**.yaml'
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -24,6 +26,8 @@ jobs:
         run: make test
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
+        with:
+          files: ./out/coverprofile.out
   build:
     needs: test
     runs-on: ubuntu-latest
