@@ -1,4 +1,4 @@
-name: CLI check and build
+name: ci
 on:
   push:
     paths:

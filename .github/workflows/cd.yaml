@@ -1,9 +1,5 @@
-name: CLI check and build
+name: cd
 on:
-  push:
-    paths:
-      - '**.go'
-      - '.github/workflows/**.yaml'
   pull_request:
     paths:
       - '**.go'
