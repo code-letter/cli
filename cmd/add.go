@@ -53,7 +53,7 @@ func run(cmd *cobra.Command, args []string) {
 
 func parseLabels(labels []string) map[string]string {
 	if labels == nil || len(labels) == 0 {
-		return nil
+		return map[string]string{}
 	}
 
 	result := make(map[string]string, len(labels))
