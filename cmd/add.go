@@ -20,8 +20,10 @@ arguments:
 	addCmdLabelsFlagName = "label"
 )
 
-const labelSeparator = ":"
+const labelNameValueSeparator = ":"
 const defaultLabelTimestampName = "timestamp"
+
+const lineNumberSeparator = ","
 
 func AddCommand() *cobra.Command {
 	var addCmd = &cobra.Command{
@@ -38,18 +40,21 @@ func AddCommand() *cobra.Command {
 }
 
 func initFlag(command *cobra.Command) {
-	var defaultLabelsFlagValues = []string{defaultLabelTimestampName + labelSeparator + tools.NowTimestampString()}
+	var defaultLabelsFlagValues = []string{defaultLabelTimestampName + labelNameValueSeparator + tools.NowTimestampString()}
 	command.Flags().StringArray(addCmdLabelsFlagName, defaultLabelsFlagValues, "add label for code review comments")
 }
 
 func run(cmd *cobra.Command, args []string) {
-	commitHash := args[0]
-	filePath := args[1]
+	var (
+		commitHash            = args[0]
+		filePath              = args[1]
+		lineNumberArrayString = args[2]
+		reviewComment         = args[3]
+	)
 
-	lineNumbers, err := tools.StrArrayToIntArray(strings.Split(args[2], ","))
+	lineNumbers, err := tools.StrArrayToIntArray(strings.Split(lineNumberArrayString, lineNumberSeparator))
 	tools.CheckIfError(err)
 
-	reviewComment := args[3]
 	labelStrings, err := cmd.Flags().GetStringArray(addCmdLabelsFlagName)
 	tools.CheckIfError(err)
 
@@ -66,7 +71,7 @@ func parseLabels(labels []string) map[string]string {
 	result := make(map[string]string, len(labels))
 
 	for _, label := range labels {
-		labelArray := strings.Split(label, labelSeparator)
+		labelArray := strings.Split(label, labelNameValueSeparator)
 
 		if len(labelArray) != 2 {
 			tools.Error("label is invalid: " + label)
