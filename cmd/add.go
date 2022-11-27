@@ -58,9 +58,17 @@ func run(cmd *cobra.Command, args []string) {
 	labelStrings, err := cmd.Flags().GetStringArray(addCmdLabelsFlagName)
 	tools.CheckIfError(err)
 
-	internal.AddCodeReviewComment(
-		parseRepoPath(cmd), commitHash, filePath, lineNumbers, reviewComment, parseLabels(labelStrings),
-	)
+	localRepoPath := parseRepoPath(cmd)
+	labels := parseLabels(labelStrings)
+
+	config := internal.NewConfig(localRepoPath)
+	comment := internal.NewComment(localRepoPath, commitHash, filePath, lineNumbers, reviewComment, labels)
+
+	serviceFactor := internal.NewServiceFactory()
+	service, err := serviceFactor.CreateService(config, comment)
+	tools.CheckIfError(err)
+
+	service.Persist()
 }
 
 func parseLabels(labels []string) map[string]string {

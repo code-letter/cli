@@ -1,28 +1,44 @@
 package internal
 
 import (
-	"github.com/go-git/go-git/v5"
-	"github.com/redxiiikk/code-letter-cli/tools"
+	"errors"
+	"fmt"
 )
 
-func AddCodeReviewComment(
-	repoPath string,
-	commitHashStr string,
-	filePath string,
-	lines []int,
-	reviewComment string,
-	labels map[string]string,
-) {
-	config := newConfig(repoPath)
-	comment := newReviewComment(openRepo(repoPath), config, commitHashStr, filePath, lines, reviewComment, labels)
-
-	comment.valid()
-	comment.persist()
+type Service interface {
+	Persist()
+	ReadAll() (result []Comment)
 }
 
-func openRepo(repoPath string) *git.Repository {
-	repo, err := git.PlainOpen(repoPath)
-	tools.CheckIfError(err)
+type ServiceTypeName string
+type serviceCreateFunc func(config *Config, comment *Comment) Service
 
-	return repo
+const (
+	LocalStoreServiceName ServiceTypeName = "local-store-service"
+)
+
+type ServiceFactory struct {
+	registerServiceCreateFunc map[ServiceTypeName]serviceCreateFunc
+}
+
+var registerServiceCreateFunc = map[ServiceTypeName]serviceCreateFunc{
+	LocalStoreServiceName: newLocalStoreService,
+}
+
+func NewServiceFactory() *ServiceFactory {
+	return &ServiceFactory{registerServiceCreateFunc: registerServiceCreateFunc}
+}
+
+func (factor *ServiceFactory) CreateService(config *Config, comment *Comment) (Service, error) {
+	serviceName, isExisted := comment.Labels["service"]
+	if !isExisted {
+		return nil, errors.New("no service specified")
+	}
+
+	createFunc, isExisted := factor.registerServiceCreateFunc[ServiceTypeName(serviceName)]
+	if !isExisted {
+		return nil, errors.New(fmt.Sprintf("can't support %s", serviceName))
+	}
+
+	return createFunc(config, comment), nil
 }

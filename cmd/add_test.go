@@ -188,3 +188,7 @@ func Test_AddCommand(t *testing.T) {
 		}
 	})
 }
+
+func Test_run(t *testing.T) {
+
+}
