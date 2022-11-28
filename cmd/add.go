@@ -57,9 +57,9 @@ func run(cmd *cobra.Command, args []string) {
 
 	labelStrings, err := cmd.Flags().GetStringArray(addCmdLabelsFlagName)
 	tools.CheckIfError(err)
+	labels := parseLabels(labelStrings)
 
 	localRepoPath := parseRepoPath(cmd)
-	labels := parseLabels(labelStrings)
 
 	config := internal.NewConfig(localRepoPath)
 	comment := internal.NewComment(localRepoPath, commitHash, filePath, lineNumbers, reviewComment, labels)

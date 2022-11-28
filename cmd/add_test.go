@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/redxiiikk/code-letter-cli/internal"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"os"
@@ -189,6 +190,30 @@ func Test_AddCommand(t *testing.T) {
 	})
 }
 
-func Test_run(t *testing.T) {
+type mockService struct {
+	isCallPersist int
+	isCallReadAll int
+	readAllResult []internal.Comment
+}
 
+func (service *mockService) Persist() {
+	service.isCallPersist += 1
+}
+func (service *mockService) ReadAll() (result []internal.Comment) {
+	service.isCallReadAll += 1
+	return service.readAllResult
+}
+
+func Test_run(t *testing.T) {
+	t.Run("given right line number string args when run should parse this arg", func(t *testing.T) {
+		factory := internal.NewServiceFactory()
+		err := factory.RegisterService("mock-service", func(config *internal.Config, comment *internal.Comment) internal.Service {
+			return &mockService{}
+		})
+		if err != nil {
+			t.Fatalf("can't register mock service create function in factory")
+		}
+
+		// TODO: 完善测试
+	})
 }
