@@ -1,25 +1,11 @@
-name: CLI check and build
+name: cd
 on:
-  push:
   pull_request:
+    paths:
+      - '**.go'
+      - '.github/workflows/**.yaml'
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: 1.19
-          check-latest: true
-          cache: true
-          cache-dependency-path: go.sum
-      - name: Test
-        run: make test
   build:
-    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -32,7 +18,7 @@ jobs:
           check-latest: true
           cache: true
           cache-dependency-path: go.sum
-      - name: Test
+      - name: Build
         run: make build
       - uses: actions/upload-artifact@v3.1.1
         with:
